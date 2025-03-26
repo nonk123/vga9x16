@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>VGA 9x16</title>
+        <link rel="icon" href="/favicon.avif" type="image/avif" />
+        <meta name="description" content="VGA 9x16 blob generation API" />
+        <meta name="robots" content="index, follow" />
+        <style>
+            html,
+            body {
+                padding: 0;
+                margin: 0;
+            }
+
+            body {
+                width: 100vw;
+                height: 100vh;
+
+                font: 20px Consolas, monospace;
+
+                background-image: url("/png");
+                background-size: 288px 288px;
+                background-repeat: repeat;
+                background-position: center;
+
+                display: grid;
+                grid-template-areas:
+                    ". . ."
+                    ". m ."
+                    ". . .";
+                grid-template-rows: 1fr auto 1fr;
+                grid-template-columns: 1fr calc(min(100%, 800px)) 1fr;
+            }
+
+            main {
+                grid-area: m;
+                border: 5px solid #ffffff;
+                color: #ffffff;
+                background: #000000;
+                padding: 0 1ch;
+            }
+        </style>
+    </head>
+    <body>
+        <main>
+            <p>This is a demo for the <a href="/png">underlying API</a>.</p>
+            <p>
+                Refer to
+                <a href="https://github.com/nonk123/vga9x16"
+                    >the project's GitHub</a
+                >
+                for info.
+            </p>
+        </main>
+    </body>
+</html>

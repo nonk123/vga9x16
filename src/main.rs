@@ -41,17 +41,28 @@ async fn rocket() -> _ {
         }
     });
 
-    rocket::build().mount("/", routes![index, favicon, png])
+    rocket::build().mount("/", routes![index, favicon, robots, png])
 }
 
 #[get("/")]
 async fn index() -> NamedFile {
-    NamedFile::open("index.html").await.unwrap()
+    NamedFile::open(if option_env!("VGA9X16_PUBLIC").is_some() {
+        "index.public.html"
+    } else {
+        "index.html"
+    })
+    .await
+    .unwrap()
 }
 
 #[get("/favicon.avif")]
 async fn favicon() -> NamedFile {
     NamedFile::open("favicon.avif").await.unwrap()
+}
+
+#[get("/robots.txt")]
+async fn robots() -> NamedFile {
+    NamedFile::open("robots.txt").await.unwrap()
 }
 
 #[get("/png")]
