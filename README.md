@@ -20,3 +20,10 @@ Here are some implementation details for the curious:
 
 - The ASCII-art PNG is updated every second. Two users reaching `/png` at around the same time will get duplicate blobs.
 - You can set `VGA9X16_PUBLIC=1` at build time to return [index.public.html](index.public.html) for the `/` route.
+
+## Attribution
+
+Links to where the assets were borrowed from:
+
+- [9x16.png](https://dwarffortresswiki.org/index.php/Tileset_repository#9.C3.9716).
+- [favicon.avif](favicon.avif) - trimmed from [9x16.png](9x16.png) and reexported to AVIF.
