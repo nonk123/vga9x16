@@ -7,7 +7,7 @@ use std::{
 };
 
 use image::{
-    ExtendedColorType, GenericImage, GenericImageView, ImageEncoder, ImageReader, RgbImage,
+    ExtendedColorType, GenericImage, GenericImageView, ImageEncoder, ImageReader, Rgb, RgbImage,
     codecs::png::PngEncoder,
 };
 use rand::RngCore;
@@ -60,20 +60,48 @@ async fn png() -> (ContentType, Vec<u8>) {
     (ContentType::PNG, png)
 }
 
+const COLORS: [Rgb<u8>; 15] = [
+    //Rgb([0x00, 0x00, 0x00]),
+    Rgb([0x00, 0x00, 0xAA]),
+    Rgb([0x00, 0xAA, 0x00]),
+    Rgb([0x00, 0xAA, 0xAA]),
+    Rgb([0xAA, 0x00, 0x00]),
+    Rgb([0xAA, 0x00, 0xAA]),
+    Rgb([0xAA, 0x55, 0x00]),
+    Rgb([0xAA, 0xAA, 0xAA]),
+    Rgb([0x55, 0x55, 0x55]),
+    Rgb([0x55, 0x55, 0xFF]),
+    Rgb([0x55, 0xFF, 0x55]),
+    Rgb([0x55, 0xFF, 0xFF]),
+    Rgb([0xFF, 0x55, 0x55]),
+    Rgb([0xFF, 0x55, 0xFF]),
+    Rgb([0xFF, 0xFF, 0x55]),
+    Rgb([0xFF, 0xFF, 0xFF]),
+];
+
 fn generate() {
     let mut png = RgbImage::new(SIZE, SIZE);
     let font = FONT.get().unwrap();
 
     for out_y in 0..(SIZE / GLYPH_HEIGHT) {
         for out_x in 0..(SIZE / GLYPH_WIDTH) {
-            let idx = rand::rng().next_u32() % 256;
-            let in_x = (idx % 16) * GLYPH_WIDTH;
-            let in_y = (idx / 16) * GLYPH_HEIGHT;
+            let glyph_idx = rand::rng().next_u32() % 256;
+            let color_idx = rand::rng().next_u32() as usize % COLORS.len();
+
+            let in_x = (glyph_idx % 16) * GLYPH_WIDTH;
+            let in_y = (glyph_idx / 16) * GLYPH_HEIGHT;
 
             let out_x = out_x * GLYPH_WIDTH;
             let out_y = out_y * GLYPH_HEIGHT;
 
-            let glyph = font.view(in_x, in_y, GLYPH_WIDTH, GLYPH_HEIGHT).to_image();
+            let mut glyph = font.view(in_x, in_y, GLYPH_WIDTH, GLYPH_HEIGHT).to_image();
+
+            for pixel in glyph.pixels_mut() {
+                if *pixel == Rgb([0xFF, 0xFF, 0xFF]) {
+                    *pixel = COLORS[color_idx];
+                }
+            }
+
             png.copy_from(&glyph, out_x, out_y).unwrap();
         }
     }
