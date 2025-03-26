@@ -1,10 +1,12 @@
 # vga9x16
 
+[See the live demo](https://vga9x16.ru).
+
 A simple HTTP API serving a very specific usecase:
 
 - You need a randomly generated blob of Dwarf Fortress styled ASCII-art.
 - It needs to be somewhat unique for each request.
-- It has to be in PNG format so you can use as a CSS background.
+- It has to be in PNG format so you can use it as a CSS background.
 
 ## Usage
 
