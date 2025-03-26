@@ -8,7 +8,9 @@ A simple HTTP API serving a very specific usecase:
 
 ## Usage
 
-Run development server with `cargo run`. Docker support coming soon&trade;.
+Run the development server with `cargo run`.
+
+A [Dockerfile](Dockerfile) is included for easy deployment. GitHub package coming soon&trade;.
 
 Navigate to `/` for an example background image usage. The `/png` route returns the sought-after ASCII-art blob.
 
