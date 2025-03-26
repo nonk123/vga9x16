@@ -90,14 +90,38 @@ const COLORS: [Rgb<u8>; 15] = [
     Rgb([0xFF, 0xFF, 0xFF]),
 ];
 
+const FORBIDDEN_GLYPHS: &[(u32, u32)] = &[
+    (13, 11), // solid block
+    (0, 8),   // almost solid
+    (0, 10),
+];
+
+fn is_ok(glyph_idx: u32) -> bool {
+    glyph_idx <= 255 && !FORBIDDEN_GLYPHS.contains(&(glyph_idx / 16, glyph_idx % 16))
+}
+
+fn next_glyph() -> u32 {
+    let mut glyph_idx = 256;
+
+    while !is_ok(glyph_idx) {
+        glyph_idx = rand::rng().next_u32() % 256;
+    }
+
+    glyph_idx
+}
+
+fn next_color() -> usize {
+    rand::rng().next_u32() as usize % COLORS.len()
+}
+
 fn generate() {
     let mut png = RgbImage::new(SIZE, SIZE);
     let font = FONT.get().unwrap();
 
     for out_y in 0..(SIZE / GLYPH_HEIGHT) {
         for out_x in 0..(SIZE / GLYPH_WIDTH) {
-            let glyph_idx = rand::rng().next_u32() % 256;
-            let color_idx = rand::rng().next_u32() as usize % COLORS.len();
+            let glyph_idx = next_glyph();
+            let color_idx = next_color();
 
             let in_x = (glyph_idx % 16) * GLYPH_WIDTH;
             let in_y = (glyph_idx / 16) * GLYPH_HEIGHT;
