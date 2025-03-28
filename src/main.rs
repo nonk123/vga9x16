@@ -11,7 +11,10 @@ use image::{
     codecs::png::PngEncoder,
 };
 use rand::RngCore;
-use rocket::{fs::NamedFile, http::ContentType};
+use responders::AsciiBlob;
+use rocket::fs::NamedFile;
+
+mod responders;
 
 const UPDATE_INTERVAL: f32 = 1.0;
 
@@ -66,9 +69,9 @@ async fn robots() -> NamedFile {
 }
 
 #[get("/png")]
-async fn png() -> (ContentType, Vec<u8>) {
+async fn png() -> AsciiBlob<Vec<u8>> {
     let png = PNG.read().unwrap().as_ref().unwrap().clone();
-    (ContentType::PNG, png)
+    AsciiBlob(png, "image/png")
 }
 
 const COLORS: [Rgb<u8>; 15] = [
