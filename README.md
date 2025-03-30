@@ -12,7 +12,17 @@ A simple HTTP API serving a very specific usecase:
 
 Run the development server with `cargo run`.
 
-A [Dockerfile](Dockerfile) is included for easy deployment. GitHub package coming soon&trade;.
+For deployment, use this sample `docker-compose.yml`; then point your reverse-proxy ([I recommend caddy](https://caddyserver.com/)) to `vga9x16:8000`:
+
+```yaml
+services:
+  main:
+    container_name: vga9x16
+    image: ghcr.io/nonk123/vga9x16:release
+    restart: always
+    networks:
+      - add your reverse-proxy network here...
+```
 
 Navigate to `/` for an example background image usage. The `/png` route returns the sought-after ASCII-art blob.
 
