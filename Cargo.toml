@@ -4,6 +4,6 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-image = { version = "^0.25", default-features = false, features = ["png"] }
-rand = "^0.9"
-rocket = "^0.5"
+image = { version = "0.25.x", default-features = false, features = ["png"] }
+rand = "0.9.x"
+rocket = "0.5.x"
