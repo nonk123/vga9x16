@@ -24,7 +24,7 @@ services:
       - add your reverse-proxy network here...
 ```
 
-Navigate to `/` for an example background image usage. The `/png` route returns the sought-after ASCII-art blob.
+Navigate to `/` for an example background image usage. The `/png` route returns the sought-after ASCII-art blob. Pass `?transparent=true` for a transparent background instead of black.
 
 ## Under the hood
 

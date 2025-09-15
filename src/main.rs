@@ -7,7 +7,7 @@ use std::{
 };
 
 use image::{
-    ExtendedColorType, GenericImage, GenericImageView, ImageEncoder, ImageReader, Rgb, RgbImage,
+    ExtendedColorType, GenericImage, GenericImageView, ImageEncoder, ImageReader, Rgba, RgbaImage,
     codecs::png::PngEncoder,
 };
 use rand::RngCore;
@@ -22,8 +22,13 @@ const SIZE: u32 = 288;
 const GLYPH_WIDTH: u32 = 9;
 const GLYPH_HEIGHT: u32 = 16;
 
-static FONT: OnceLock<RgbImage> = OnceLock::new();
-static PNG: RwLock<Option<Vec<u8>>> = RwLock::new(None);
+struct PngBlobs {
+    classic: Vec<u8>,
+    transparent: Vec<u8>,
+}
+
+static FONT: OnceLock<RgbaImage> = OnceLock::new();
+static PNG: RwLock<Option<PngBlobs>> = RwLock::new(None);
 
 #[launch]
 async fn rocket() -> _ {
@@ -32,15 +37,16 @@ async fn rocket() -> _ {
             .unwrap()
             .decode()
             .unwrap()
-            .into_rgb8(),
+            .into_rgba8(),
     )
     .unwrap();
 
-    generate();
+    generate_blobs();
+
     std::thread::spawn(|| {
         loop {
             std::thread::sleep(Duration::from_secs_f32(UPDATE_INTERVAL));
-            generate();
+            generate_blobs();
         }
     });
 
@@ -68,29 +74,33 @@ async fn robots() -> NamedFile {
     NamedFile::open("robots.txt").await.unwrap()
 }
 
-#[get("/png")]
-async fn png() -> AsciiBlob<Vec<u8>> {
-    let png = PNG.read().unwrap().as_ref().unwrap().clone();
-    AsciiBlob(png, "image/png")
+#[get("/png?<transparent>")]
+async fn png(transparent: bool) -> AsciiBlob<Vec<u8>> {
+    let guard = PNG.read().unwrap();
+    let pngs = guard.as_ref().unwrap();
+    AsciiBlob(if transparent {
+        pngs.transparent.clone()
+    } else {
+        pngs.classic.clone()
+    })
 }
 
-const COLORS: [Rgb<u8>; 15] = [
-    //Rgb([0x00, 0x00, 0x00]),
-    Rgb([0x00, 0x00, 0xAA]),
-    Rgb([0x00, 0xAA, 0x00]),
-    Rgb([0x00, 0xAA, 0xAA]),
-    Rgb([0xAA, 0x00, 0x00]),
-    Rgb([0xAA, 0x00, 0xAA]),
-    Rgb([0xAA, 0x55, 0x00]),
-    Rgb([0xAA, 0xAA, 0xAA]),
-    Rgb([0x55, 0x55, 0x55]),
-    Rgb([0x55, 0x55, 0xFF]),
-    Rgb([0x55, 0xFF, 0x55]),
-    Rgb([0x55, 0xFF, 0xFF]),
-    Rgb([0xFF, 0x55, 0x55]),
-    Rgb([0xFF, 0x55, 0xFF]),
-    Rgb([0xFF, 0xFF, 0x55]),
-    Rgb([0xFF, 0xFF, 0xFF]),
+const COLORS: [Rgba<u8>; 15] = [
+    Rgba([0x00, 0x00, 0xAA, 0xFF]),
+    Rgba([0x00, 0xAA, 0x00, 0xFF]),
+    Rgba([0x00, 0xAA, 0xAA, 0xFF]),
+    Rgba([0xAA, 0x00, 0x00, 0xFF]),
+    Rgba([0xAA, 0x00, 0xAA, 0xFF]),
+    Rgba([0xAA, 0x55, 0x00, 0xFF]),
+    Rgba([0xAA, 0xAA, 0xAA, 0xFF]),
+    Rgba([0x55, 0x55, 0x55, 0xFF]),
+    Rgba([0x55, 0x55, 0xFF, 0xFF]),
+    Rgba([0x55, 0xFF, 0x55, 0xFF]),
+    Rgba([0x55, 0xFF, 0xFF, 0xFF]),
+    Rgba([0xFF, 0x55, 0x55, 0xFF]),
+    Rgba([0xFF, 0x55, 0xFF, 0xFF]),
+    Rgba([0xFF, 0xFF, 0x55, 0xFF]),
+    Rgba([0xFF, 0xFF, 0xFF, 0xFF]),
 ];
 
 const FORBIDDEN_GLYPHS: &[(u32, u32)] = &[
@@ -117,10 +127,17 @@ fn next_color() -> usize {
     rand::rng().next_u32() as usize % COLORS.len()
 }
 
-fn generate() {
-    let mut png = RgbImage::new(SIZE, SIZE);
-    let font = FONT.get().unwrap();
+fn generate_blobs() {
+    PNG.write().unwrap().replace(PngBlobs {
+        classic: generate_blob(false),
+        transparent: generate_blob(true),
+    });
+}
 
+fn generate_blob(transparent: bool) -> Vec<u8> {
+    let mut image = RgbaImage::new(SIZE, SIZE);
+
+    let font = FONT.get().unwrap();
     for out_y in 0..(SIZE / GLYPH_HEIGHT) {
         for out_x in 0..(SIZE / GLYPH_WIDTH) {
             let glyph_idx = next_glyph();
@@ -133,20 +150,28 @@ fn generate() {
             let out_y = out_y * GLYPH_HEIGHT;
 
             let mut glyph = font.view(in_x, in_y, GLYPH_WIDTH, GLYPH_HEIGHT).to_image();
-
             for pixel in glyph.pixels_mut() {
-                if *pixel == Rgb([0xFF, 0xFF, 0xFF]) {
+                if let Rgba([0xFF, 0xFF, 0xFF, _]) = *pixel {
                     *pixel = COLORS[color_idx];
-                }
+                } else if transparent {
+                    *pixel = Rgba([255, 255, 255, 0])
+                } else {
+                    *pixel = Rgba([0, 0, 0, 255])
+                };
             }
 
-            png.copy_from(&glyph, out_x, out_y).unwrap();
+            image.copy_from(&glyph, out_x, out_y).unwrap();
         }
     }
 
-    let mut buffer = vec![];
-    PngEncoder::new(&mut buffer)
-        .write_image(&png, png.width(), png.height(), ExtendedColorType::Rgb8)
+    let mut data = vec![];
+    PngEncoder::new(&mut data)
+        .write_image(
+            &image,
+            image.width(),
+            image.height(),
+            ExtendedColorType::Rgba8,
+        )
         .unwrap();
-    PNG.write().unwrap().replace(buffer);
+    data
 }

@@ -4,7 +4,7 @@ use rocket::{
     response::{self, Responder},
 };
 
-pub struct AsciiBlob<D>(pub D, pub &'static str);
+pub struct AsciiBlob<D>(pub D);
 
 #[rocket::async_trait]
 impl<'r, 'o: 'r, D: Responder<'r, 'o>> Responder<'r, 'o> for AsciiBlob<D> {
@@ -12,7 +12,7 @@ impl<'r, 'o: 'r, D: Responder<'r, 'o>> Responder<'r, 'o> for AsciiBlob<D> {
         let mut response = self.0.respond_to(req)?;
         let caching = "public, no-store, max-age=1, s-maxage=1";
         response.set_header(Header::new("Cache-Control", caching));
-        response.set_header(Header::new("Content-Type", self.1));
+        response.set_header(Header::new("Content-Type", "image/png"));
         Ok(response)
     }
 }
