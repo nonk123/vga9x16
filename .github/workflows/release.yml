@@ -53,10 +53,13 @@ jobs:
     steps:
       - name: Deploy
         uses: appleboy/ssh-action@v1.2.2
+        env:
+          IMAGE: ghcr.io/nonk123/vga9x16
         with:
           host: vga9x16.ru
           username: root
           key: ${{ secrets.SSH_KEY }}
           script: |
+            docker pull $IMAGE
             docker container rm --force vga9x16 || true
-            docker run -d --name vga9x16 --network caddy --restart always ghcr.io/nonk123/vga9x16
+            docker run -d --name vga9x16 --network caddy --restart always $IMAGE
