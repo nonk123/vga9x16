@@ -59,6 +59,7 @@ jobs:
           host: vga9x16.ru
           username: root
           key: ${{ secrets.SSH_KEY }}
+          envs: IMAGE
           script: |
             docker pull $IMAGE
             docker container rm --force vga9x16 || true
