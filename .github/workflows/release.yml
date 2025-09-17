@@ -54,7 +54,7 @@ jobs:
       - name: Deploy
         uses: appleboy/ssh-action@v1.2.2
         env:
-          IMAGE: ghcr.io/nonk123/vga9x16
+          IMAGE: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
         with:
           host: vga9x16.ru
           username: root
