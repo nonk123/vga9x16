@@ -5,5 +5,5 @@ edition = "2024"
 
 [dependencies]
 image = { version = "0.25.x", default-features = false, features = ["png"] }
-rand = "0.9.x"
+rand = "0.10.0-rc"
 rocket = "0.5.x"
