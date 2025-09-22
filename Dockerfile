@@ -1,4 +1,4 @@
-FROM rust:1.89-bookworm AS builder
+FROM rust:1.90-bookworm AS builder
 
 ENV VGA9X16_PUBLIC=1
 WORKDIR /app
