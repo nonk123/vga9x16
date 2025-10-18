@@ -13,6 +13,8 @@ impl<'r, 'o: 'r, D: Responder<'r, 'o>> Responder<'r, 'o> for AsciiBlob<D> {
         let caching = "public, no-store, max-age=1, s-maxage=1";
         response.set_header(Header::new("Cache-Control", caching));
         response.set_header(Header::new("Content-Type", "image/png"));
+        response.set_header(Header::new("Access-Control-Allow-Methods", "GET"));
+        response.set_header(Header::new("Access-Control-Allow-Origin", "*"));
         Ok(response)
     }
 }
