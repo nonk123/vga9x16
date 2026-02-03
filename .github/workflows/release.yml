@@ -52,7 +52,7 @@ jobs:
     needs: build
     steps:
       - name: Deploy
-        uses: appleboy/ssh-action@v1.2.4
+        uses: appleboy/ssh-action@v1.2.5
         env:
           IMAGE: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
         with:
