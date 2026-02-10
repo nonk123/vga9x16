@@ -7,16 +7,15 @@ COPY Cargo.toml Cargo.lock ./
 RUN mkdir src && echo "fn main() {}" > src/main.rs
 RUN cargo fetch --locked
 RUN cargo build --release
-RUN rm src/main.rs
 
-COPY . .
+COPY ./src ./
 RUN touch src/main.rs
 RUN cargo build --release
 
 FROM debian:bookworm-slim AS runner
 
 WORKDIR /app
-COPY . .
+COPY ./assets ./Rocket.toml ./
 COPY --from=builder /app/target/release/vga9x16 /usr/local/bin/server
 
 EXPOSE 8000/tcp

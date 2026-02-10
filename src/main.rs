@@ -37,7 +37,7 @@ static PNG: RwLock<Option<PngBlobs>> = RwLock::new(None);
 async fn main() -> eyre::Result<()> {
     let _ = color_eyre::install();
     {
-        let img = ImageReader::open("9x16.png")?.decode()?.into_rgba8();
+        let img = ImageReader::open("assets/9x16.png")?.decode()?.into_rgba8();
         FONT.set(img).unwrap();
     }
 
@@ -61,9 +61,9 @@ async fn main() -> eyre::Result<()> {
 #[get("/")]
 async fn index() -> NamedFile {
     NamedFile::open(if option_env!("VGA9X16_PUBLIC").is_some() {
-        "index.public.html"
+        "assets/index.public.html"
     } else {
-        "index.html"
+        "assets/index.html"
     })
     .await
     .unwrap()
@@ -71,12 +71,12 @@ async fn index() -> NamedFile {
 
 #[get("/favicon.avif")]
 async fn favicon() -> NamedFile {
-    NamedFile::open("favicon.avif").await.unwrap()
+    NamedFile::open("assets/favicon.avif").await.unwrap()
 }
 
 #[get("/robots.txt")]
 async fn robots() -> NamedFile {
-    NamedFile::open("robots.txt").await.unwrap()
+    NamedFile::open("assets/robots.txt").await.unwrap()
 }
 
 #[get("/png?<transparent>")]
