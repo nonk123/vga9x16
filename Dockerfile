@@ -1,4 +1,4 @@
-FROM rust:1.93-bookworm AS builder
+FROM rust:1.93-trixie AS builder
 
 ENV VGA9X16_PUBLIC=1
 WORKDIR /app
@@ -12,7 +12,7 @@ COPY ./src ./
 RUN touch src/main.rs
 RUN cargo build --release
 
-FROM debian:bookworm-slim AS runner
+FROM debian:trixie-slim AS runner
 
 WORKDIR /app
 COPY ./assets ./Rocket.toml ./
