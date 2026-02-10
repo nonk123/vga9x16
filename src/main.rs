@@ -3,18 +3,21 @@ extern crate rocket;
 
 use std::{
     sync::{OnceLock, RwLock},
+    thread,
     time::Duration,
 };
 
+use color_eyre::eyre;
 use image::{
     ExtendedColorType, GenericImage, GenericImageView, ImageEncoder, ImageReader, Rgba, RgbaImage,
     codecs::png::PngEncoder,
 };
-use rand::RngCore;
-use responders::AsciiBlob;
+use rand::Rng;
 use rocket::fs::NamedFile;
 
 mod responders;
+
+use responders::AsciiBlob;
 
 const UPDATE_INTERVAL: f32 = 1.0;
 
@@ -30,27 +33,29 @@ struct PngBlobs {
 static FONT: OnceLock<RgbaImage> = OnceLock::new();
 static PNG: RwLock<Option<PngBlobs>> = RwLock::new(None);
 
-#[launch]
-async fn rocket() -> _ {
-    FONT.set(
-        ImageReader::open("9x16.png")
-            .unwrap()
-            .decode()
-            .unwrap()
-            .into_rgba8(),
-    )
-    .unwrap();
+#[rocket::main]
+async fn main() -> eyre::Result<()> {
+    let _ = color_eyre::install();
+    {
+        let img = ImageReader::open("9x16.png")?.decode()?.into_rgba8();
+        FONT.set(img).unwrap();
+    }
 
     generate_blobs();
 
-    std::thread::spawn(|| {
+    thread::spawn(move || {
         loop {
-            std::thread::sleep(Duration::from_secs_f32(UPDATE_INTERVAL));
+            thread::sleep(Duration::from_secs_f32(UPDATE_INTERVAL));
             generate_blobs();
         }
     });
 
-    rocket::build().mount("/", routes![index, favicon, robots, png])
+    rocket::build()
+        .mount("/", routes![index, favicon, robots, png])
+        .launch()
+        .await?;
+
+    Ok(())
 }
 
 #[get("/")]
@@ -75,7 +80,7 @@ async fn robots() -> NamedFile {
 }
 
 #[get("/png?<transparent>")]
-async fn png(transparent: bool) -> AsciiBlob<Vec<u8>> {
+async fn png(transparent: bool) -> AsciiBlob {
     let guard = PNG.read().unwrap();
     let pngs = guard.as_ref().unwrap();
     AsciiBlob(if transparent {

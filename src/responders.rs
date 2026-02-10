@@ -1,20 +1,23 @@
+use std::io::Cursor;
+
 use rocket::{
-    Request,
-    http::Header,
+    Request, Response,
+    http::{ContentType, Header},
     response::{self, Responder},
 };
 
-pub struct AsciiBlob<D>(pub D);
+pub struct AsciiBlob(pub Vec<u8>);
 
 #[rocket::async_trait]
-impl<'r, 'o: 'r, D: Responder<'r, 'o>> Responder<'r, 'o> for AsciiBlob<D> {
-    fn respond_to(self, req: &'r Request<'_>) -> response::Result<'o> {
-        let mut response = self.0.respond_to(req)?;
+impl<'r, 'o: 'r> Responder<'r, 'o> for AsciiBlob {
+    fn respond_to(self, _: &'r Request<'_>) -> response::Result<'o> {
         let caching = "public, no-store, max-age=1, s-maxage=1";
-        response.set_header(Header::new("Cache-Control", caching));
-        response.set_header(Header::new("Content-Type", "image/png"));
-        response.set_header(Header::new("Access-Control-Allow-Methods", "GET"));
-        response.set_header(Header::new("Access-Control-Allow-Origin", "*"));
-        Ok(response)
+        Response::build()
+            .header(ContentType::PNG)
+            .header(Header::new("Cache-Control", caching))
+            .header(Header::new("Access-Control-Allow-Methods", "GET"))
+            .header(Header::new("Access-Control-Allow-Origin", "*"))
+            .sized_body(self.0.len(), Cursor::new(self.0))
+            .ok()
     }
 }
